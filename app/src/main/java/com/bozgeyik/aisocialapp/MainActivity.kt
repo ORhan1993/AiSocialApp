@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.bozgeyik.aisocialapp.presentation.FeedScreen
 import com.bozgeyik.aisocialapp.presentation.LoginScreen
+import com.bozgeyik.aisocialapp.presentation.SignupScreen
 import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
@@ -35,10 +36,17 @@ class MainActivity : ComponentActivity() {
                         startDestination = startDestination
                     ) {
 
+                        // 1. Durak: Giriş
                         composable("login_screen") {
                             LoginScreen(navController = navController)
                         }
 
+                        // 2. Durak: Kayıt (YENİ EKLENEN KISIM)
+                        composable("signup_screen") {
+                            SignupScreen(navController = navController)
+                        }
+
+                        // 3. Durak: Feed
                         composable("feed_screen") {
                             FeedScreen()
                         }

@@ -4,8 +4,10 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -22,10 +24,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController) { // <-- Parametre Eklendi
+fun SignupScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") } // İleride profil isminde kullanacağız
     var passwordVisible by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
@@ -39,14 +43,37 @@ fun LoginScreen(navController: NavController) { // <-- Parametre Eklendi
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
+        // Geri Dön Butonu (Sol Üst Köşe İçin Opsiyonel ama şık durur)
+        /*
+        IconButton(
+            onClick = { navController.popBackStack() },
+            modifier = Modifier.align(Alignment.Start)
+        ) {
+            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Geri")
+        }
+        */
+
         Text(
-            text = "AI Social",
+            text = "Kayıt Ol",
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = 48.dp)
+            modifier = Modifier.padding(bottom = 32.dp)
         )
 
+        // --- Kullanıcı Adı ---
+        OutlinedTextField(
+            value = username,
+            onValueChange = { username = it },
+            label = { Text("Kullanıcı Adı") },
+            leadingIcon = { Icon(imageVector = Icons.Default.Person, contentDescription = null) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // --- E-posta ---
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -59,6 +86,7 @@ fun LoginScreen(navController: NavController) { // <-- Parametre Eklendi
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // --- Şifre ---
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -78,15 +106,16 @@ fun LoginScreen(navController: NavController) { // <-- Parametre Eklendi
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- GÜNCELLENEN BUTON KISMI ---
+        // --- Kayıt Butonu ---
         Button(
             onClick = {
                 if (email.isNotEmpty() && password.isNotEmpty()) {
-                    auth.signInWithEmailAndPassword(email, password)
+                    // Firebase Kayıt İşlemi
+                    auth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
-                                Toast.makeText(context, "Giriş Başarılı!", Toast.LENGTH_SHORT).show()
-                                // Başarılıysa Feed ekranına git ve geri dönülemesin diye Login'i stack'ten sil
+                                Toast.makeText(context, "Kayıt Başarılı! Hoşgeldin.", Toast.LENGTH_SHORT).show()
+                                // Başarılı olunca Feed ekranına yönlendir, geri dönüemesin diye stack'i temizle
                                 navController.navigate("feed_screen") {
                                     popUpTo("login_screen") { inclusive = true }
                                 }
@@ -95,21 +124,21 @@ fun LoginScreen(navController: NavController) { // <-- Parametre Eklendi
                             }
                         }
                 } else {
-                    Toast.makeText(context, "Lütfen alanları doldurunuz.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Lütfen tüm alanları doldurunuz.", Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text(text = "Giriş Yap", fontSize = 18.sp)
+            Text(text = "Kayıt Ol", fontSize = 18.sp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Kayıt Ol butonuna da işlev verelim (Bir sonraki adımda bu ekranı yapacağız)
-        TextButton(onClick = { navController.navigate("signup_screen") }) {
-            Text("Hesabın yok mu? Kayıt Ol")
+        // --- Zaten Hesabım Var ---
+        TextButton(onClick = { navController.popBackStack() }) {
+            Text("Zaten hesabın var mı? Giriş Yap")
         }
     }
 }

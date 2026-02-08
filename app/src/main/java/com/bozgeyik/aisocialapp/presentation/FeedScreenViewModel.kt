@@ -29,8 +29,8 @@ class FeedScreenViewModel : ViewModel() {
                         return@addSnapshotListener
                     }
 
-                    if (snapshots != null) {
-                        _posts.value = snapshots.toObjects()
+                    if (snapshots != null)
+                    {_posts.value = snapshots.toObjects(Post::class.java)
                     }
                 }
         }

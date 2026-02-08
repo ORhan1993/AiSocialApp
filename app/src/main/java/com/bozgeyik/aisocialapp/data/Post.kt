@@ -1,3 +1,5 @@
+package com.bozgeyik.aisocialapp.data
+
 data class Post(
     val id: String,
     val username: String,
