@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1034619486117",
+    "project_id": "aisocialapp-6b4e0",
+    "storage_bucket": "aisocialapp-6b4e0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1034619486117:android:f0e0155727541295a1724c",
+        "android_client_info": {
+          "package_name": "com.bozgeyik.aisocialapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC92czhCb7GCI50C2q0GKGMXdeXaCsbL9M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
