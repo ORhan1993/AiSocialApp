@@ -10,45 +10,102 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.bozgeyik.aisocialapp.presentation.FeedScreen
-import com.bozgeyik.aisocialapp.presentation.LoginScreen
-import com.bozgeyik.aisocialapp.presentation.SignupScreen
-import com.google.firebase.auth.FirebaseAuth
+import com.bozgeyik.aisocialapp.ui.screens.AddStoryScreen
+import com.bozgeyik.aisocialapp.ui.screens.ChatScreen
+import com.bozgeyik.aisocialapp.ui.screens.LoginScreen
+import com.bozgeyik.aisocialapp.ui.screens.MainLayout
+import com.bozgeyik.aisocialapp.ui.screens.SearchScreen
+import com.bozgeyik.aisocialapp.ui.screens.SignupScreen
+import com.bozgeyik.aisocialapp.ui.screens.SplashScreen
+import com.bozgeyik.aisocialapp.ui.theme.AiSocialAppTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val auth = FirebaseAuth.getInstance()
-
-        val startDestination = if (auth.currentUser != null) "feed_screen" else "login_screen"
-
         setContent {
-            MaterialTheme {
+            AiSocialAppTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
 
-                    NavHost(
-                        navController = navController,
-                        startDestination = startDestination
-                    ) {
+                    // Navigasyon Yapısı
+                    NavHost(navController = navController, startDestination = "splash") {
 
-                        // 1. Durak: Giriş
-                        composable("login_screen") {
-                            LoginScreen(navController = navController)
+                        // 1. AÇILIŞ EKRANI (Oto-Login Kontrolü Burada)
+                        composable("splash") {
+                            SplashScreen(
+                                onNavigateToHome = {
+                                    navController.navigate("main_layout") {
+                                        popUpTo("splash") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToLogin = {
+                                    navController.navigate("login") {
+                                        popUpTo("splash") { inclusive = true }
+                                    }
+                                }
+                            )
                         }
 
-                        // 2. Durak: Kayıt (YENİ EKLENEN KISIM)
-                        composable("signup_screen") {
-                            SignupScreen(navController = navController)
+                        // 2. GİRİŞ & KAYIT
+                        composable("login") {
+                            LoginScreen(
+                                onLoginSuccess = {
+                                    navController.navigate("main_layout") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToSignup = { navController.navigate("signup") }
+                            )
                         }
 
-                        // 3. Durak: Feed
-                        composable("feed_screen") {
-                            FeedScreen()
+                        composable("signup") {
+                            SignupScreen(
+                                onSignupSuccess = {
+                                    navController.navigate("main_layout") {
+                                        popUpTo("signup") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToLogin = { navController.popBackStack() }
+                            )
+                        }
+
+                        // 3. ANA UYGULAMA (Menülü Ekran)
+                        composable("main_layout") {
+                            MainLayout(
+                                onLogout = {
+                                    // Çıkış yapınca Login'e at
+                                    navController.navigate("login") {
+                                        popUpTo("main_layout") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+
+                        composable("search") {
+                            SearchScreen(navController = navController)
+                        }
+
+                        composable(
+                            "chat/{username}?postId={postId}",
+                            // Argümanları tanımla (postId opsiyonel)
+                            arguments = listOf(
+                                androidx.navigation.navArgument("username") { type = androidx.navigation.NavType.StringType },
+                                androidx.navigation.navArgument("postId") {
+                                    type = androidx.navigation.NavType.LongType
+                                    defaultValue = 0L
+                                }
+                            )
+                        ) { backStackEntry ->
+                            val username = backStackEntry.arguments?.getString("username") ?: ""
+                            val postId = backStackEntry.arguments?.getLong("postId")
+                            ChatScreen(receiverUsername = username, sharedPostId = postId)
+                        }
+
+                        composable("add_story") {
+                            AddStoryScreen(onStoryAdded = { navController.popBackStack() })
                         }
                     }
                 }
