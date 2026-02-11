@@ -1,5 +1,4 @@
 [versions]
-# Sürüm tutarlılığı için AGP versiyonu güncellendi
 agp = "8.13.2"
 kotlin = "2.0.0"
 kotlinSerialization = "2.0.0"
@@ -14,8 +13,7 @@ kotlinCompose = "2.0.0"
 
 # Supabase & Ktor
 supabaseBom = "2.5.0"
-ktorClientCio = "2.3.12"
-supabaseRealtime = "3.0.0"
+ktor = "2.3.12"
 
 # Coil
 coilCompose = "2.6.0"
@@ -28,8 +26,6 @@ kotlinxSerializationJson = "1.6.3"
 
 # Firebase
 googleGmsGoogleServices = "4.4.1"
-firebaseAuth = "22.3.1"
-firebaseFirestore = "24.10.2"
 
 # Testing
 junit = "4.13.2"
@@ -51,13 +47,17 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIconsExtended" }
 
-# Supabase & Ktor
+# Supabase & Ktor - TUTARLI VE DOĞRU YAPI
 supabase-bom = { group = "io.github.jan-tennert.supabase", name = "bom", version.ref = "supabaseBom" }
 supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
 supabase-storage = { group = "io.github.jan-tennert.supabase", name = "storage-kt" }
 supabase-gotrue = { group = "io.github.jan-tennert.supabase", name = "gotrue-kt" }
-supabase-realtime = { group = "io.github.jan-tennert.supabase", name = "realtime-kt", version.ref = "supabaseRealtime" }
-ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktorClientCio" }
+supabase-realtime = { group = "io.github.jan-tennert.supabase", name = "realtime-kt" }
+ktor-bom = { group = "io.ktor", name = "ktor-bom", version.ref = "ktor" }
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core" }
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation"}
+
 
 # Coil
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coilCompose" }
@@ -69,10 +69,6 @@ androidx-media3-common = { group = "androidx.media3", name = "media3-common", ve
 
 # Serialization
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-
-# Firebase (Eğer hala kullanılıyorsa)
-firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
-firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestore" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }

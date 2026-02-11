@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.kotlin.serialization)
-    // Kotlin 2.0 için zorunlu olan Compose Compiler eklentisini aktive ediyoruz.
     alias(libs.plugins.kotlin.compose)
 }
 
@@ -44,13 +43,6 @@ android {
         jvmTarget = "11"
     }
 
-    // Bu blok, yeni kotlin.compose eklentisi ile gereksiz hale geldi.
-    // buildFeatures {
-    //     compose = true
-    // }
-
-    // composeOptions {} // Bu bloğa da artık gerek yok.
-
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -59,8 +51,8 @@ android {
 }
 
 dependencies {
-    // KESİN ÇÖZÜM: Diğer bağımlılıkların getirdiği eski sürümleri ezmek için `enforcedPlatform` kullanıyoruz.
     implementation(enforcedPlatform(libs.androidx.compose.bom))
+    implementation(enforcedPlatform(libs.ktor.bom))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -71,12 +63,15 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.kotlinx.serialization.json)
 
-    // --- SUPABASE (Firebase Yerine) ---
+    // --- SUPABASE & KTOR (TUTARLI VE DOĞRU YAPI) ---
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.storage)
     implementation(libs.supabase.gotrue)
+    implementation(libs.supabase.realtime)
+    implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.content.negotiation)
 
     // Coil (Resim Gösterme)
     implementation(libs.coil.compose)
@@ -90,7 +85,4 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.common)
-
-    // Supabase Realtime
-    implementation(libs.supabase.realtime)
 }
