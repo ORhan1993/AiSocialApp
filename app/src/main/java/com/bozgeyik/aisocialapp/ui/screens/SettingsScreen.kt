@@ -1,16 +1,15 @@
 package com.bozgeyik.aisocialapp.ui.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Message
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,10 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.bozgeyik.aisocialapp.data.Profile
 import com.bozgeyik.aisocialapp.data.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
-import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,62 +30,15 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val currentUserEmail = SupabaseClient.client.auth.currentUserOrNull()?.email ?: ""
-    val currentUsername = currentUserEmail.split("@")[0]
 
-    // Ayarların State'leri
-    var isPrivate by remember { mutableStateOf(false) }
-    var messagePermission by remember { mutableStateOf("everyone") } // everyone / friends
-    var allowNotifications by remember { mutableStateOf(true) }
-    var isLoading by remember { mutableStateOf(true) }
-
-    // Verileri Çek
-    LaunchedEffect(Unit) {
-        val list = SupabaseClient.client.from("profiles").select {
-            filter { eq("username", currentUsername) }
-        }.decodeList<Profile>()
-
-        if (list.isNotEmpty()) {
-            val p = list[0]
-            isPrivate = p.is_private
-            messagePermission = p.message_permission
-            allowNotifications = p.allow_notifications
-        }
-        isLoading = false
-    }
-
-    // Ayarları Kaydetme Fonksiyonu
-    fun saveSettings(
-        newPrivate: Boolean = isPrivate,
-        newMsgPerm: String = messagePermission,
-        newNotif: Boolean = allowNotifications
-    ) {
-        scope.launch {
-            try {
-                SupabaseClient.client.from("profiles").update(
-                    mapOf(
-                        "is_private" to newPrivate,
-                        "message_permission" to newMsgPerm,
-                        "allow_notifications" to newNotif
-                    )
-                ) { filter { eq("username", currentUsername) } }
-
-                // State güncelle
-                isPrivate = newPrivate
-                messagePermission = newMsgPerm
-                allowNotifications = newNotif
-
-                Toast.makeText(context, "Ayarlar güncellendi", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(context, "Hata oluştu", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
+    // Şifre Değiştirme Dialog Kontrolü
+    var showPasswordDialog by remember { mutableStateOf(false) }
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Hesap Ayarları") },
+                title = { Text("Ayarlar") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
@@ -97,113 +47,167 @@ fun SettingsScreen(navController: NavController) {
             )
         }
     ) { padding ->
-        if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-                    .padding(16.dp)
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Text("Hesap Ayarları", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 1. Şifre Değiştir
+            SettingsItem(
+                icon = Icons.Default.Lock,
+                title = "Şifre Değiştir",
+                onClick = { showPasswordDialog = true }
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            Text("Uygulama", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 2. Hakkında
+            SettingsItem(
+                icon = Icons.Default.Info,
+                title = "Uygulama Hakkında",
+                subtitle = "Sürüm 1.0.0",
+                onClick = { Toast.makeText(context, "Ai Social App v1.0 \nDeveloped by Bozgeyik", Toast.LENGTH_LONG).show() }
+            )
+
+            Spacer(modifier = Modifier.weight(1f)) // Kalan boşluğu doldur
+
+            // 3. Tehlikeli Bölge
+            Button(
+                onClick = { showDeleteAccountDialog = true },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.error),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                // BAŞLIK: GİZLİLİK
-                SettingsHeader("Gizlilik ve Güvenlik")
-
-                // 1. Gizli Hesap Anahtarı
-                SettingsSwitchItem(
-                    icon = Icons.Default.Lock,
-                    title = "Gizli Hesap",
-                    description = "Hesabını sadece seni takip edenler görebilir.",
-                    checked = isPrivate,
-                    onCheckedChange = { saveSettings(newPrivate = it) }
-                )
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-                // BAŞLIK: İLETİŞİM
-                SettingsHeader("İletişim Tercihleri")
-
-                // 2. Mesaj İzni (Seçenekli)
-                Text("Bana kimler mesaj atabilir?", fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 8.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = messagePermission == "everyone",
-                        onClick = { saveSettings(newMsgPerm = "everyone") }
-                    )
-                    Text("Herkes")
-                    Spacer(modifier = Modifier.width(16.dp))
-                    RadioButton(
-                        selected = messagePermission == "friends",
-                        onClick = { saveSettings(newMsgPerm = "friends") }
-                    )
-                    Text("Sadece Arkadaşlar")
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 3. Bildirimler Anahtarı
-                SettingsSwitchItem(
-                    icon = Icons.Default.Notifications,
-                    title = "Bildirimler",
-                    description = "Yeni mesaj ve takip isteklerinde bildir.",
-                    checked = allowNotifications,
-                    onCheckedChange = { saveSettings(newNotif = it) }
-                )
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-                // HESAP SİLME VS.
-                SettingsHeader("Hesap İşlemleri")
-
-                Button(
-                    onClick = { /* Hesap dondurma işlemi buraya eklenebilir */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Hesabı Dondur")
-                }
+                Icon(Icons.Default.DeleteForever, null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Hesabımı Sil")
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+
+    // --- ŞİFRE DEĞİŞTİRME DİYALOĞU ---
+    if (showPasswordDialog) {
+        var newPassword by remember { mutableStateOf("") }
+        var confirmPassword by remember { mutableStateOf("") }
+        var isLoading by remember { mutableStateOf(false) }
+
+        AlertDialog(
+            onDismissRequest = { showPasswordDialog = false },
+            title = { Text("Yeni Şifre Belirle") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = newPassword,
+                        onValueChange = { newPassword = it },
+                        label = { Text("Yeni Şifre") },
+                        singleLine = true
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        label = { Text("Şifreyi Onayla") },
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (newPassword.length >= 6 && newPassword == confirmPassword) {
+                            isLoading = true
+                            scope.launch {
+                                try {
+                                    SupabaseClient.client.auth.updateUser {
+                                        password = newPassword
+                                    }
+                                    Toast.makeText(context, "Şifre güncellendi!", Toast.LENGTH_SHORT).show()
+                                    showPasswordDialog = false
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Hata: ${e.message}", Toast.LENGTH_SHORT).show()
+                                } finally {
+                                    isLoading = false
+                                }
+                            }
+                        } else {
+                            Toast.makeText(context, "Şifreler uyuşmuyor veya çok kısa", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    enabled = !isLoading
+                ) {
+                    Text("Güncelle")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPasswordDialog = false }) { Text("İptal") }
+            }
+        )
+    }
+
+    // --- HESAP SİLME DİYALOĞU ---
+    if (showDeleteAccountDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountDialog = false },
+            title = { Text("Hesabı Sil?") },
+            text = { Text("Bu işlem geri alınamaz. Tüm verilerin, gönderilerin ve mesajların silinecek.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        // Not: Supabase Client SDK ile direkt kullanıcı silmek güvenlik nedeniyle
+                        // genelde kapalıdır (Server-side gerekir).
+                        // Ancak "Service Role" yoksa, kullanıcıyı çıkış yaptırıp UI'dan atabiliriz.
+                        scope.launch {
+                            SupabaseClient.client.auth.signOut()
+                            // Burada normalde "edge function" çağırıp silmek gerekir.
+                            // Şimdilik çıkış yaptırıp Login'e atıyoruz.
+                            navController.navigate("home") { // Home'a git, oradan Login'e atar
+                                popUpTo(0)
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("Evet, Sil")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccountDialog = false }) { Text("İptal") }
+            }
+        )
     }
 }
 
-// Yardımcı Bileşen: Başlık
+// Yardımcı Liste Elemanı Bileşeni
 @Composable
-fun SettingsHeader(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(bottom = 12.dp)
-    )
-}
-
-// Yardımcı Bileşen: Switch'li Ayar Satırı
-@Composable
-fun SettingsSwitchItem(
+fun SettingsItem(
     icon: ImageVector,
     title: String,
-    description: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    subtitle: String? = null,
+    onClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(modifier = Modifier.weight(1f)) {
-            Icon(icon, contentDescription = null, tint = Color.Gray)
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(text = title, fontWeight = FontWeight.Bold)
-                Text(text = description, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+        Icon(icon, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(24.dp))
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+            if (subtitle != null) {
+                Text(subtitle, fontSize = 12.sp, color = Color.Gray)
             }
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.LightGray)
     }
 }

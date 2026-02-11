@@ -5,6 +5,7 @@ import io.github.jan.supabase.gotrue.Auth
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.serializer.KotlinXSerializer
 import io.github.jan.supabase.storage.Storage
+import io.github.jan.supabase.realtime.Realtime
 import io.ktor.http.ContentType.Application.Json
 import kotlinx.serialization.json.Json
 
@@ -27,5 +28,7 @@ object SupabaseClient {
             })
         }
         install(Storage)   // Dosya Yükleme
+        install(Realtime)
+
     }
 }

@@ -21,6 +21,7 @@ import androidx.navigation.navArgument
 @Composable
 fun MainLayout(onLogout: () -> Unit) {
     val navController = rememberNavController()
+    // 0: Home, 1: Search, 2: Add, 3: Chat, 4: Profile
     var selectedItem by remember { mutableStateOf(0) }
 
     Scaffold(
@@ -36,7 +37,9 @@ fun MainLayout(onLogout: () -> Unit) {
                     selected = selectedItem == 0,
                     onClick = {
                         selectedItem = 0
-                        navController.navigate("home") { popUpTo("home") { inclusive = true } }
+                        navController.navigate("home") {
+                            popUpTo("home") { inclusive = true }
+                        }
                     }
                 )
 
@@ -51,7 +54,7 @@ fun MainLayout(onLogout: () -> Unit) {
                     }
                 )
 
-                // 3. EKLE (Ortadaki Büyük Buton)
+                // 3. EKLE (Büyük Buton)
                 NavigationBarItem(
                     icon = {
                         Icon(
@@ -68,15 +71,14 @@ fun MainLayout(onLogout: () -> Unit) {
                     }
                 )
 
-                // 4. MESAJLAR (YENİ EKLENDİ)
+                // 4. MESAJLAR (SOHBET LİSTESİ)
                 NavigationBarItem(
                     icon = { Icon(Icons.Default.Email, contentDescription = "Mesajlar") },
                     label = { Text("Chat") },
                     selected = selectedItem == 3,
                     onClick = {
                         selectedItem = 3
-                        // Şimdilik kişi arama ekranına gidiyor, yarın "Sohbet Listesi" yapacağız
-                        navController.navigate("search")
+                        navController.navigate("chat_list")
                     }
                 )
 
@@ -96,18 +98,21 @@ fun MainLayout(onLogout: () -> Unit) {
         Box(modifier = Modifier.padding(paddingValues)) {
             NavHost(navController = navController, startDestination = "home") {
 
+                // 1. ANA SAYFA (Bildirim parametresi eklendi)
                 composable("home") {
                     HomeScreen(
                         onNavigateToAddPost = { navController.navigate("add_post") },
                         onNavigateToAddStory = { navController.navigate("add_story") },
                         onNavigateToMessages = {
                             selectedItem = 3
-                            navController.navigate("search")
+                            navController.navigate("chat_list")
                         },
+                        onNavigateToNotifications = { navController.navigate("notifications") }, // YENİ
                         onNavigateToLogin = onLogout
                     )
                 }
 
+                // 2. GÖNDERİ EKLEME
                 composable("add_post") {
                     AddPostScreen(onPostAdded = {
                         navController.popBackStack()
@@ -115,6 +120,7 @@ fun MainLayout(onLogout: () -> Unit) {
                     })
                 }
 
+                // 3. PROFİL
                 composable("profile") {
                     ProfileScreen(
                         onLogout = onLogout,
@@ -122,14 +128,22 @@ fun MainLayout(onLogout: () -> Unit) {
                     )
                 }
 
+                // 4. HİKAYE EKLEME
                 composable("add_story") {
                     AddStoryScreen(onStoryAdded = { navController.popBackStack() })
                 }
 
+                // 5. ARAMA
                 composable("search") {
                     SearchScreen(navController = navController)
                 }
 
+                // 6. SOHBET LİSTESİ (INBOX)
+                composable("chat_list") {
+                    ChatListScreen(navController = navController)
+                }
+
+                // 7. SOHBET DETAY
                 composable(
                     "chat/{username}",
                     arguments = listOf(navArgument("username") { type = NavType.StringType })
@@ -138,8 +152,14 @@ fun MainLayout(onLogout: () -> Unit) {
                     ChatScreen(receiverUsername = username)
                 }
 
+                // 8. AYARLAR
                 composable("settings") {
                     SettingsScreen(navController = navController)
+                }
+
+                // 9. BİLDİRİMLER (YENİ)
+                composable("notifications") {
+                    NotificationsScreen(navController = navController)
                 }
             }
         }
