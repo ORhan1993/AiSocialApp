@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.kotlin.serialization)
+    // Kotlin 2.0 için zorunlu olan Compose Compiler eklentisini aktive ediyoruz.
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
@@ -42,12 +44,12 @@ android {
         jvmTarget = "11"
     }
 
-    buildFeatures {
-        compose = true
-    }
+    // Bu blok, yeni kotlin.compose eklentisi ile gereksiz hale geldi.
+    // buildFeatures {
+    //     compose = true
+    // }
 
-    // Compiler versiyonu artık BOM'dan zorla (enforced) alınacak.
-    composeOptions {}
+    // composeOptions {} // Bu bloğa da artık gerek yok.
 
     packaging {
         resources {

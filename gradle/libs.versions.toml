@@ -1,7 +1,7 @@
 [versions]
+# Sürüm tutarlılığı için AGP versiyonu güncellendi
 agp = "8.13.2"
 kotlin = "2.0.0"
-# HATA DÜZELTİLDİ: Serialization plugin sürümü ana Kotlin sürümüyle aynı olmalı
 kotlinSerialization = "2.0.0"
 coreKtx = "1.13.1"
 activityCompose = "1.9.0"
@@ -10,6 +10,7 @@ lifecycleRuntimeKtx = "2.8.1"
 navigationCompose = "2.7.7"
 lifecycleViewmodelCompose = "2.8.1"
 materialIconsExtended = "1.6.7"
+kotlinCompose = "2.0.0"
 
 # Supabase & Ktor
 supabaseBom = "2.5.0"
@@ -85,3 +86,4 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlinCompose" }

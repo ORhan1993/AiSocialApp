@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(receiverUsername: String) {
+fun ChatScreen(receiverUsername: String, sharedPostId: Long? = null) {
     var messages by remember { mutableStateOf<List<Message>>(emptyList()) }
     var newMessageText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
