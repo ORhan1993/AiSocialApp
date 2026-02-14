@@ -1,6 +1,6 @@
 [versions]
-agp = "8.13.2"
-kotlin = "2.0.0"
+agp = "9.0.1"
+kotlin = "2.2.10"
 kotlinSerialization = "2.0.0"
 coreKtx = "1.13.1"
 activityCompose = "1.9.0"
@@ -9,7 +9,7 @@ lifecycleRuntimeKtx = "2.8.1"
 navigationCompose = "2.7.7"
 lifecycleViewmodelCompose = "2.8.1"
 materialIconsExtended = "1.6.7"
-kotlinCompose = "2.0.0"
+kotlinCompose = "2.2.10"
 
 # Supabase & Ktor
 supabaseBom = "2.5.0"

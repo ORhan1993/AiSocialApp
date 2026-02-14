@@ -14,6 +14,13 @@ data class Profile(
     val message_permission: String = "everyone",
     val show_status: Boolean = true,
     val allow_notifications: Boolean = true
+)@Serializable
+data class PostCreate(
+    val username: String,
+    val description: String,
+    val image_url: String?,
+    val media_type: String = "image",
+    val is_ai_generated: Boolean = false
 )
 
 @Serializable

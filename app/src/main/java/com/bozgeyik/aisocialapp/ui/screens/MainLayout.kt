@@ -98,7 +98,7 @@ fun MainLayout(onLogout: () -> Unit) {
         Box(modifier = Modifier.padding(paddingValues)) {
             NavHost(navController = navController, startDestination = "home") {
 
-                // 1. ANA SAYFA (Bildirim parametresi eklendi)
+                // 1. ANA SAYFA
                 composable("home") {
                     HomeScreen(
                         onNavigateToAddPost = { navController.navigate("add_post") },
@@ -107,7 +107,7 @@ fun MainLayout(onLogout: () -> Unit) {
                             selectedItem = 3
                             navController.navigate("chat_list")
                         },
-                        onNavigateToNotifications = { navController.navigate("notifications") }, // YENİ
+                        onNavigateToNotifications = { navController.navigate("notifications") },
                         onNavigateToLogin = onLogout
                     )
                 }
@@ -157,7 +157,7 @@ fun MainLayout(onLogout: () -> Unit) {
                     SettingsScreen(navController = navController)
                 }
 
-                // 9. BİLDİRİMLER (YENİ)
+                // 9. BİLDİRİMLER
                 composable("notifications") {
                     NotificationsScreen(navController = navController)
                 }

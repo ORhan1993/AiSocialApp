@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.bozgeyik.aisocialapp.data.Post
+import com.bozgeyik.aisocialapp.data.PostCreate
 import com.bozgeyik.aisocialapp.data.SupabaseClient
 import com.bozgeyik.aisocialapp.ui.components.VideoPlayer
 import io.github.jan.supabase.gotrue.auth
@@ -130,7 +131,7 @@ fun AddPostScreen(onPostAdded: () -> Unit) {
                                 val username = user?.email?.split("@")?.get(0) ?: "anonim"
 
                                 val fileName = "${mediaType}_${UUID.randomUUID()}.${if(mediaType=="image") "jpg" else "mp4"}"
-                                val bucket = SupabaseClient.client.storage.from("images") // "images" bucketını kullanmaya devam ediyoruz
+                                val bucket = SupabaseClient.client.storage.from("images")
 
                                 val bytes = withContext(Dispatchers.IO) {
                                     context.contentResolver.openInputStream(mediaUri!!)?.use { it.readBytes() }
@@ -140,20 +141,27 @@ fun AddPostScreen(onPostAdded: () -> Unit) {
                                     bucket.upload(fileName, bytes)
                                     val url = bucket.publicUrl(fileName)
 
-                                    val newPost = Post(
+                                    // --- DEĞİŞEN KISIM BURASI ---
+                                    // Artık 'Post' yerine 'PostCreate' kullanıyoruz.
+                                    // Böylece ID ve created_at göndermiyoruz, veritabanı bunları otomatik oluşturuyor.
+                                    val newPost = PostCreate(
                                         username = username,
                                         description = description,
                                         image_url = url,
-                                        media_type = mediaType // 'video' veya 'image' olarak kaydediyoruz
+                                        media_type = mediaType
                                     )
+                                    // ----------------------------
 
+                                    // Veritabanına ekleme işlemi
                                     SupabaseClient.client.from("posts").insert(newPost)
 
                                     Toast.makeText(context, "Paylaşıldı!", Toast.LENGTH_SHORT).show()
                                     onPostAdded()
                                 }
                             } catch (e: Exception) {
+                                // Hatayı daha net görmek için e.message yazdırıyoruz
                                 Toast.makeText(context, "Hata: ${e.message}", Toast.LENGTH_LONG).show()
+                                e.printStackTrace() // Logcat'e hatayı basar
                             } finally {
                                 isLoading = false
                             }
