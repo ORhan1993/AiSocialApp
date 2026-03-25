@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+
+// Mevcut importların
 import com.bozgeyik.aisocialapp.ui.screens.AddStoryScreen
 import com.bozgeyik.aisocialapp.ui.screens.ChatScreen
 import com.bozgeyik.aisocialapp.presentation.LoginScreen
@@ -19,9 +21,25 @@ import com.bozgeyik.aisocialapp.ui.screens.SignupScreen
 import com.bozgeyik.aisocialapp.ui.screens.SplashScreen
 import com.bozgeyik.aisocialapp.ui.theme.AiSocialAppTheme
 
+// --- YENİ EKLENEN IMPORTLAR (Şifre Sıfırlama İçin) ---
+import com.bozgeyik.aisocialapp.data.SupabaseClient
+import io.github.jan.supabase.gotrue.handleDeeplinks
+import com.bozgeyik.aisocialapp.ui.screens.UpdatePasswordScreen
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 1. Supabase'in gelen linki yakalayıp arka planda oturum açmasını sağla
+        SupabaseClient.client.handleDeeplinks(intent)
+
+        // 2. Gelen link bir şifre sıfırlama talebi mi kontrol et
+        var startScreen = "splash"
+        val uri = intent?.data
+        if (uri != null && uri.scheme == "aisocial" && uri.fragment?.contains("type=recovery") == true) {
+            startScreen = "update_password" // Eğer şifre sıfırlama linkiyse bu ekranla başla
+        }
+
         setContent {
             AiSocialAppTheme {
                 Surface(
@@ -30,8 +48,20 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val navController = rememberNavController()
 
-                    // Navigasyon Yapısı
-                    NavHost(navController = navController, startDestination = "splash") {
+                    // Navigasyon Yapısı (startDestination değişkenini kullanıyoruz)
+                    NavHost(navController = navController, startDestination = startScreen) {
+
+                        // --- YENİ EKLENEN EKRAN (ŞİFRE GÜNCELLEME) ---
+                        composable("update_password") {
+                            UpdatePasswordScreen(
+                                onPasswordUpdated = {
+                                    // Şifre güncellendikten sonra Login ekranına yönlendir
+                                    navController.navigate("login") {
+                                        popUpTo("update_password") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
 
                         // 1. AÇILIŞ EKRANI (Oto-Login Kontrolü Burada)
                         composable("splash") {

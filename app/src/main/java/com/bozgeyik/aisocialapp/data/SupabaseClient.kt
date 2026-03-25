@@ -18,7 +18,11 @@ object SupabaseClient {
             supabaseUrl = SUPABASE_URL,
             supabaseKey = SUPABASE_KEY
         ) {
-            install(Auth)
+            // Şifre sıfırlama linklerini (Deep Link) yakalayabilmesi için yapılandırıldı
+            install(Auth) {
+                scheme = "aisocial"
+                host = "callback"
+            }
             install(Postgrest) {
                 serializer = KotlinXSerializer(Json {
                     ignoreUnknownKeys = true

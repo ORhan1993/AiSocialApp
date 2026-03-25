@@ -43,6 +43,12 @@ fun LoginScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    // Şifre sıfırlama Dialog state'leri
+    var showForgotPasswordDialog by remember { mutableStateOf(false) }
+    var resetEmail by remember { mutableStateOf("") }
+    var resetStatusMessage by remember { mutableStateOf("") }
+    var isResetting by remember { mutableStateOf(false) }
+
     // Arka Plan Gradients (Şık bir görünüm için)
     val gradient = Brush.verticalGradient(
         colors = listOf(
@@ -139,7 +145,21 @@ fun LoginScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            // --- ŞİFREMİ UNUTTUM BUTONU ---
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                TextButton(onClick = { showForgotPasswordDialog = true }) {
+                    Text(
+                        text = "Şifremi Unuttum?",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             // --- GİRİŞ BUTONU ---
             Button(
@@ -186,6 +206,80 @@ fun LoginScreen(
                     Text("Kayıt Ol", fontWeight = FontWeight.Bold)
                 }
             }
+        }
+
+        // --- ŞİFRE SIFIRLAMA DİALOG PENCERESİ ---
+        if (showForgotPasswordDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showForgotPasswordDialog = false
+                    resetStatusMessage = ""
+                    resetEmail = ""
+                },
+                title = { Text("Şifre Sıfırlama") },
+                text = {
+                    Column {
+                        Text("Kayıtlı e-posta adresinizi girin. Size şifrenizi sıfırlamanız için bir bağlantı göndereceğiz.", fontSize = 14.sp)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        OutlinedTextField(
+                            value = resetEmail,
+                            onValueChange = { resetEmail = it },
+                            label = { Text("E-posta adresiniz") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        if (resetStatusMessage.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = resetStatusMessage,
+                                color = if (resetStatusMessage.startsWith("Hata")) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (resetEmail.isNotEmpty()) {
+                                isResetting = true
+                                resetStatusMessage = "Gönderiliyor..."
+                                scope.launch {
+                                    try {
+                                        SupabaseClient.client.auth.resetPasswordForEmail(resetEmail)
+                                        resetStatusMessage = "Sıfırlama linki e-postanıza gönderildi!"
+                                    } catch (e: Exception) {
+                                        resetStatusMessage = "Hata: E-posta bulunamadı veya gönderilemedi."
+                                    } finally {
+                                        isResetting = false
+                                    }
+                                }
+                            } else {
+                                resetStatusMessage = "Lütfen e-posta adresinizi girin."
+                            }
+                        },
+                        enabled = !isResetting
+                    ) {
+                        if (isResetting) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), color = Color.White, strokeWidth = 2.dp)
+                        } else {
+                            Text("Gönder")
+                        }
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showForgotPasswordDialog = false
+                            resetStatusMessage = ""
+                            resetEmail = ""
+                        }
+                    ) {
+                        Text("İptal")
+                    }
+                }
+            )
         }
     }
 }
