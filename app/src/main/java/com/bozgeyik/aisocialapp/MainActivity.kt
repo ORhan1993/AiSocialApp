@@ -12,7 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.bozgeyik.aisocialapp.ui.screens.AddStoryScreen
 import com.bozgeyik.aisocialapp.ui.screens.ChatScreen
-import com.bozgeyik.aisocialapp.ui.screens.LoginScreen
+import com.bozgeyik.aisocialapp.presentation.LoginScreen
 import com.bozgeyik.aisocialapp.ui.screens.MainLayout
 import com.bozgeyik.aisocialapp.ui.screens.SearchScreen
 import com.bozgeyik.aisocialapp.ui.screens.SignupScreen
