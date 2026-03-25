@@ -2,6 +2,8 @@ package com.bozgeyik.aisocialapp.presentation
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -43,63 +46,84 @@ fun LoginScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // Şifre sıfırlama Dialog state'leri
     var showForgotPasswordDialog by remember { mutableStateOf(false) }
     var resetEmail by remember { mutableStateOf("") }
     var resetStatusMessage by remember { mutableStateOf("") }
     var isResetting by remember { mutableStateOf(false) }
 
-    // Arka Plan Gradients (Şık bir görünüm için)
-    val gradient = Brush.verticalGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.primaryContainer,
-            MaterialTheme.colorScheme.background
+    // 1. Sistem Gece Modunda mı kontrol ediyoruz
+    val isDark = isSystemInDarkTheme()
+
+    // 2. Dinamik Arka Plan Gradyanı
+    val backgroundGradient = if (isDark) {
+        Brush.linearGradient(
+            colors = listOf(
+                MaterialTheme.colorScheme.background,
+                MaterialTheme.colorScheme.surface // Gece modunda soft lacivert/gri geçişi
+            )
         )
-    )
+    } else {
+        Brush.linearGradient(
+            colors = listOf(
+                Color(0xFFFFF8E1), // Gündüz için uçuk sarı
+                Color(0xFFFFEBEB), // Gündüz için uçuk pembe
+                Color(0xFFE8F1F2)  // Gündüz için uçuk mavi
+            )
+        )
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(gradient)
+            .background(backgroundGradient),
+        contentAlignment = Alignment.Center
     ) {
+        // 3. Dinamik Buzlu Cam Paneli
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth(0.9f)
+                .clip(RoundedCornerShape(24.dp))
+                // Gece modunda panel biraz daha koyu ve daha az saydam
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 0.6f else 0.4f))
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(24.dp)
+                )
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // --- LOGO ALANI ---
             Surface(
                 modifier = Modifier
-                    .size(100.dp)
-                    .clip(RoundedCornerShape(20.dp)),
-                color = MaterialTheme.colorScheme.primary,
-                shadowElevation = 8.dp
+                    .size(90.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .shadow(8.dp, RoundedCornerShape(24.dp)),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = "Ai",
-                        fontSize = 40.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.primary // Temadan gelen vurgu rengi
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Text(
                 text = "Hoş Geldiniz",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground // Gece açık, Gündüz koyu metin
             )
 
             Text(
                 text = "Hesabınıza giriş yapın",
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontSize = 15.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -112,11 +136,19 @@ fun LoginScreen(
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(16.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White.copy(alpha = 0.8f),
-                    unfocusedContainerColor = Color.White.copy(alpha = 0.5f)
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 0.8f else 0.7f),
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 0.5f else 0.5f),
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                 )
             )
 
@@ -131,17 +163,25 @@ fun LoginScreen(
                 trailingIcon = {
                     val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = null)
+                        Icon(imageVector = image, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
                     }
                 },
                 singleLine = true,
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(16.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White.copy(alpha = 0.8f),
-                    unfocusedContainerColor = Color.White.copy(alpha = 0.5f)
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 0.8f else 0.7f),
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = if (isDark) 0.5f else 0.5f),
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                 )
             )
 
@@ -153,13 +193,14 @@ fun LoginScreen(
                 TextButton(onClick = { showForgotPasswordDialog = true }) {
                     Text(
                         text = "Şifremi Unuttum?",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.primary
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // --- GİRİŞ BUTONU ---
             Button(
@@ -186,14 +227,15 @@ fun LoginScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
+                    .height(54.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                shape = RoundedCornerShape(16.dp),
                 enabled = !isLoading
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Giriş Yap", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("GİRİŞ YAP", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
 
@@ -201,14 +243,15 @@ fun LoginScreen(
 
             // --- KAYIT OL LİNKİ ---
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Hesabın yok mu?", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Hesabın yok mu?", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
                 TextButton(onClick = onNavigateToSignup) {
-                    Text("Kayıt Ol", fontWeight = FontWeight.Bold)
+                    Text("Kayıt Ol", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 }
             }
         }
 
         // --- ŞİFRE SIFIRLAMA DİALOG PENCERESİ ---
+        // Dialog pencereleri standart Material3 bileşeni olduğu için temadaki renkleri otomatik alır.
         if (showForgotPasswordDialog) {
             AlertDialog(
                 onDismissRequest = {
@@ -259,12 +302,13 @@ fun LoginScreen(
                                 resetStatusMessage = "Lütfen e-posta adresinizi girin."
                             }
                         },
-                        enabled = !isResetting
+                        enabled = !isResetting,
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         if (isResetting) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp), color = Color.White, strokeWidth = 2.dp)
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
                         } else {
-                            Text("Gönder")
+                            Text("Gönder", color = MaterialTheme.colorScheme.onPrimary)
                         }
                     }
                 },
@@ -276,7 +320,7 @@ fun LoginScreen(
                             resetEmail = ""
                         }
                     ) {
-                        Text("İptal")
+                        Text("İptal", color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
                     }
                 }
             )
