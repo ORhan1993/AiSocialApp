@@ -2,15 +2,7 @@ package com.bozgeyik.aisocialapp.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -20,27 +12,11 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.bozgeyik.aisocialapp.data.Friendship
@@ -49,114 +25,71 @@ import com.bozgeyik.aisocialapp.data.SupabaseClient
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.height
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(navController: NavController) {
-    // --- STATE TANIMLAMALARI ---
     var query by remember { mutableStateOf("") }
-    var active by remember { mutableStateOf(false) } // Arama çubuğu açık mı?
+    var active by remember { mutableStateOf(false) }
     var searchResults by remember { mutableStateOf<List<Profile>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    // Şu anki kullanıcı
     val currentUser = SupabaseClient.client.auth.currentUserOrNull()
     val currentUsername = currentUser?.email?.split("@")?.get(0) ?: ""
 
-    // --- ARAMA FONKSİYONU ---
     fun performSearch(text: String) {
         if (text.length < 2) return
-
         isLoading = true
         scope.launch {
             try {
-                // Supabase'den kullanıcı ara (Kendin hariç)
                 searchResults = SupabaseClient.client.from("profiles")
                     .select {
-                        filter {
-                            ilike("username", "%$text%")
-                            neq("username", currentUsername)
-                        }
+                        filter { ilike("username", "%$text%"); neq("username", currentUsername) }
                     }.decodeList<Profile>()
             } catch (e: Exception) {
-                // Hata durumunda sessiz kalabilir veya loglayabiliriz
-            } finally {
-                isLoading = false
-            }
+            } finally { isLoading = false }
         }
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            // --- GELİŞMİŞ SEARCH BAR ---
             SearchBar(
                 query = query,
-                onQueryChange = {
-                    query = it
-                    // Yazdıkça anlık arama yapmak istersen burayı açabilirsin:
-                    // performSearch(it)
-                },
-                onSearch = {
-                    performSearch(it)
-                    // Klavye enter'a basınca active kalsın ki sonuçları görelim
-                },
+                onQueryChange = { query = it },
+                onSearch = { performSearch(it) },
                 active = active,
-                onActiveChange = {
-                    active = it
-                    if (!active) {
-                        // Kapatılınca query'i temizlemek istersen:
-                        // query = ""
-                    }
-                },
+                onActiveChange = { active = it },
                 placeholder = { Text("Kullanıcı ara...") },
+                colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
                 leadingIcon = {
                     if (active) {
-                        // Aktifken Geri Tuşu
-                        IconButton(onClick = {
-                            active = false
-                            query = ""
-                        }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri")
+                        IconButton(onClick = { active = false; query = "" }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Geri", tint = MaterialTheme.colorScheme.onSurface)
                         }
                     } else {
-                        // Pasifken Arama İkonu
-                        Icon(Icons.Default.Search, contentDescription = "Ara")
+                        Icon(Icons.Default.Search, contentDescription = "Ara", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 trailingIcon = {
                     if (query.isNotEmpty()) {
-                        // Yazı varsa Temizle butonu
-                        IconButton(onClick = {
-                            query = ""
-                            searchResults = emptyList()
-                        }) {
-                            Icon(Icons.Default.Close, contentDescription = "Temizle")
+                        IconButton(onClick = { query = ""; searchResults = emptyList() }) {
+                            Icon(Icons.Default.Close, contentDescription = "Temizle", tint = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(if (active) 0.dp else 16.dp) // Aktifken tam ekran, değilken kenarlardan boşluklu
+                modifier = Modifier.fillMaxWidth().padding(if (active) 0.dp else 16.dp)
             ) {
-                // --- İŞTE BURASI: SEARCHBAR'IN İÇERİĞİ ---
-                // Burası artık Scaffold'un body'si yerine geçiyor (Active olduğunda)
-
                 if (isLoading) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 } else if (searchResults.isEmpty()) {
-                    // Sonuç yok veya henüz arama yapılmadı
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
+                        modifier = Modifier.fillMaxSize().padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -169,7 +102,6 @@ fun SearchScreen(navController: NavController) {
                         }
                     }
                 } else {
-                    // SONUÇ LİSTESİ (Burada listeleniyor)
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(16.dp),
@@ -181,11 +113,7 @@ fun SearchScreen(navController: NavController) {
                                 onAddFriend = {
                                     scope.launch {
                                         try {
-                                            val newFriendship = Friendship(
-                                                sender_username = currentUsername,
-                                                receiver_username = profile.username,
-                                                status = "pending"
-                                            )
+                                            val newFriendship = Friendship(sender_username = currentUsername, receiver_username = profile.username, status = "pending")
                                             SupabaseClient.client.from("friendships").insert(newFriendship)
                                             Toast.makeText(context, "İstek gönderildi!", Toast.LENGTH_SHORT).show()
                                         } catch (e: Exception) {
@@ -193,9 +121,7 @@ fun SearchScreen(navController: NavController) {
                                         }
                                     }
                                 },
-                                onClick = {
-                                    // Tıklayınca detay açılabilir veya arama kapanabilir
-                                }
+                                onClick = { }
                             )
                         }
                     }
@@ -203,78 +129,44 @@ fun SearchScreen(navController: NavController) {
             }
         }
     ) { padding ->
-        // --- SCAFFOLD BODY ---
-        // SearchBar "active" değilken burada ne görüneceği.
-        // Genelde boş bırakılır veya "Son Eklenenler" gibi bir liste konur.
-        // Biz boş bırakıyoruz çünkü her şey SearchBar'ın içinde dönüyor.
         Box(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize(),
+            modifier = Modifier.padding(padding).fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             if (!active) {
                 Text(
                     "Arkadaş bulmak için yukarıya dokun.",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha=0.6f)
                 )
             }
         }
     }
 }
 
-// --- YARDIMCI BİLEŞEN: KULLANICI LİSTE ELEMANI ---
 @Composable
-fun UserListItem(
-    profile: Profile,
-    onAddFriend: () -> Unit,
-    onClick: () -> Unit
-) {
+fun UserListItem(profile: Profile, onAddFriend: () -> Unit, onClick: () -> Unit) {
     ListItem(
-        headlineContent = { Text(profile.username) },
+        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.background),
+        headlineContent = { Text(profile.username, color = MaterialTheme.colorScheme.onBackground) },
         supportingContent = {
             if (!profile.full_name.isNullOrEmpty()) {
-                Text(profile.full_name)
+                Text(profile.full_name, color = MaterialTheme.colorScheme.onBackground.copy(alpha=0.7f))
             }
         },
         leadingContent = {
-            // Avatar
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.size(40.dp)
-            ) {
+            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.size(40.dp)) {
                 Box(contentAlignment = Alignment.Center) {
-                    if (profile.avatar_url != null) {
-                        // Eğer Coil kütüphanesi varsa AsyncImage kullan
-                        // AsyncImage(model = profile.avatar_url, ...)
-                        // Şimdilik text:
-                        Text(
-                            text = profile.username.take(1).uppercase(),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    } else {
-                        Text(
-                            text = profile.username.take(1).uppercase(),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
+                    Text(text = profile.username.take(1).uppercase(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         },
         trailingContent = {
             IconButton(onClick = onAddFriend) {
-                Icon(
-                    imageVector = Icons.Default.PersonAdd,
-                    contentDescription = "Arkadaş Ekle",
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                Icon(imageVector = Icons.Default.PersonAdd, contentDescription = "Arkadaş Ekle", tint = MaterialTheme.colorScheme.primary)
             }
         },
         modifier = Modifier.clickable { onClick() }
     )
-    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 }
-
-

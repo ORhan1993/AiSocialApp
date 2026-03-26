@@ -1,6 +1,7 @@
 package com.bozgeyik.aisocialapp.ui.screens
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
@@ -17,18 +18,33 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.bozgeyik.aisocialapp.ui.theme.ThemeViewModel // EKLENDİ
 
 @Composable
-fun MainLayout(onLogout: () -> Unit) {
+fun MainLayout(
+    themeViewModel: ThemeViewModel, // EKLENDİ: Ayarlara iletmek için temayı alıyoruz
+    onLogout: () -> Unit
+) {
     val navController = rememberNavController()
     // 0: Home, 1: Search, 2: Add, 3: Chat, 4: Profile
     var selectedItem by remember { mutableStateOf(0) }
 
+    // Gece/Gündüz modu için Navigasyon İkon Renkleri
+    val navItemColors = NavigationBarItemDefaults.colors(
+        selectedIconColor = MaterialTheme.colorScheme.primary,
+        selectedTextColor = MaterialTheme.colorScheme.primary,
+        indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+        unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+        unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+    )
+
     Scaffold(
+        // Arka planın gece/gündüz moduna uyum sağlaması için
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                contentColor = MaterialTheme.colorScheme.primary
+                contentColor = MaterialTheme.colorScheme.onSurface
             ) {
                 // 1. ANA SAYFA
                 NavigationBarItem(
@@ -40,7 +56,8 @@ fun MainLayout(onLogout: () -> Unit) {
                         navController.navigate("home") {
                             popUpTo("home") { inclusive = true }
                         }
-                    }
+                    },
+                    colors = navItemColors
                 )
 
                 // 2. ARAMA
@@ -51,7 +68,8 @@ fun MainLayout(onLogout: () -> Unit) {
                     onClick = {
                         selectedItem = 1
                         navController.navigate("search")
-                    }
+                    },
+                    colors = navItemColors
                 )
 
                 // 3. EKLE (Büyük Buton)
@@ -68,7 +86,8 @@ fun MainLayout(onLogout: () -> Unit) {
                     selected = false,
                     onClick = {
                         navController.navigate("add_post")
-                    }
+                    },
+                    colors = navItemColors
                 )
 
                 // 4. MESAJLAR (SOHBET LİSTESİ)
@@ -79,7 +98,8 @@ fun MainLayout(onLogout: () -> Unit) {
                     onClick = {
                         selectedItem = 3
                         navController.navigate("chat_list")
-                    }
+                    },
+                    colors = navItemColors
                 )
 
                 // 5. PROFİL
@@ -90,12 +110,13 @@ fun MainLayout(onLogout: () -> Unit) {
                     onClick = {
                         selectedItem = 4
                         navController.navigate("profile")
-                    }
+                    },
+                    colors = navItemColors
                 )
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
+        Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
             NavHost(navController = navController, startDestination = "home") {
 
                 // 1. ANA SAYFA
@@ -154,7 +175,11 @@ fun MainLayout(onLogout: () -> Unit) {
 
                 // 8. AYARLAR
                 composable("settings") {
-                    SettingsScreen(navController = navController)
+                    SettingsScreen(
+                        navController = navController,
+                        themeViewModel = themeViewModel, // EKLENDİ: Temayı Ayarlar'a gönderiyoruz
+                        onLogout = onLogout              // EKLENDİ: Çıkış fonksiyonunu gönderiyoruz
+                    )
                 }
 
                 // 9. BİLDİRİMLER
